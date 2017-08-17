@@ -1,0 +1,2 @@
+class Coinbase
+end
