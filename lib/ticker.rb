@@ -9,7 +9,7 @@ include Helpers
 
 gdax_credentials=gdax_creds
 
-gdax = Gdax.new(gdax_credentials["key"], gdax_credentials["secret"], gdax_credentials["passphrase"]).api
+@gdax = Gdax.new(gdax_credentials["key"], gdax_credentials["secret"], gdax_credentials["passphrase"]).api
 
 user =`echo $USER`.chomp
 host =`echo $HOSTNAME`.chomp
@@ -18,18 +18,52 @@ telegram_send("Bot has been launched by #{user} on #{host} at #{Time.now.strftim
 
 # print "What's your desired delay?: "
 # delay=gets.chomp.to_i
+
+pairs={bitcoin: "BTC-EUR", ethereum: "ETH-EUR", litecoin: "LTC-EUR"}
+
+def get_bought(pair)
+  @gdax.orders.select {|i| i["status"]=='done'}.sort_by {|i| i["done_at"]}.select {|i| i['product_id']==pair}.last
+end
+
+def update_price(data)
+  data.merge({"price" => get_current_price(data['product_id'])})
+end
+
+def get_current_price(pair)
+  @gdax.last_trade(product_id: pair)['price']
+end
+
+def calculate_position(data)
+  data['size'].to_f*data['price'].to_f
+end
+
+def calculate_historic(data)
+  "#{data['product_id']}: #{calculate_position(data)}}"
+end
+
 delay=3600
 loop do
-  open_orders=gdax.orders.select {|i| i['status']=='open'}.map {|i| "#{i["created_at"]} - #{i["product_id"]} - #{i["price"]} - #{i["size"]} "}
-  print open_orders
-  telegram_send(open_orders)
-  puts
 
-  balance=gdax.accounts.map {|i| "#{i['currency']} - #{i['balance']} - #{i['hold']}"}
-  puts balance
-  telegram_send(balance)
-  telegram_send("BTC:#{gdax.last_trade(product_id: "BTC-EUR")['price'].to_f}, ETH:#{gdax.last_trade(product_id: "ETH-EUR")['price'].to_f}")
-  puts "------------------------------------------------------"
+  btc_profit="BTC: #{calculate_position(update_price(get_bought(pairs[:bitcoin]))) - calculate_position(get_bought(pairs[:bitcoin]))}"
+  eth_profit="ETH: #{calculate_position(update_price(get_bought(pairs[:ethereum]))) - calculate_position(get_bought(pairs[:ethereum]))}"
+  puts "#{btc_profit} #{eth_profit}"
+  # binding.pry
+  # open_orders=gdax.orders.select {|i| i['status']=='open'}.map {|i| "#{i["created_at"]} - #{i["product_id"]} - #{i["price"]} - #{i["size"]} "}
+  # print open_orders
+  # telegram_send(open_orders)
+  # puts
+  #
+  # balance=gdax.accounts.map {|i| "#{i['currency']} - #{i['balance']} - #{i['hold']}"}
+  # puts balance
+  # telegram_send(balance)
+  case
+    when btc_profit< -30, eth_profit < -30
+      telegram_send("#{btc_profit} #{eth_profit}")
+    when btc_profit >= 50, eth_profit >= 50
+      telegram_send("#{btc_profit} #{eth_profit}")
+  end
+
+  # puts "------------------------------------------------------"
   sleep(delay)
 end
 
