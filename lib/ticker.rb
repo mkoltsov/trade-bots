@@ -11,10 +11,7 @@ gdax_credentials=gdax_creds
 
 @gdax = Gdax.new(gdax_credentials["key"], gdax_credentials["secret"], gdax_credentials["passphrase"]).api
 
-user =`echo $USER`.chomp
-host =`echo $HOSTNAME`.chomp
-
-telegram_send("Bot has been launched by #{user} on #{host} at #{Time.now.strftime('%H:%M')}")
+telegram_send("Bot has been launched by #{`echo $USER`.chomp} on #{`echo $HOSTNAME`.chomp || `hostname --ip-address`.chomp} at #{Time.now.strftime('%H:%M')}")
 
 # print "What's your desired delay?: "
 # delay=gets.chomp.to_i
