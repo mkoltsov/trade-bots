@@ -43,6 +43,10 @@ def get_current_state
   @gdax.accounts.map{|i| "C:#{i['currency']} B:#{i['balance']} A:#{i['available']} H:#{i['hold']}"}.pretty_inspect
 end
 
+def get_profit(pair)
+  calculate_position(update_price(get_bought(pair))) - calculate_position(get_bought(pair))
+end
+
 # eval(gdax.server_epoch)[:iso].slice(0..18)
 
 
