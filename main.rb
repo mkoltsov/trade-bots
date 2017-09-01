@@ -1,25 +1,25 @@
 #!/usr/bin/env ruby
 
+@delay=60
+
 main_loop= ->(arg) {loop do
   @bot_type="Ticker"
   require './lib/ticker.rb'
   btc_profit = get_profit(@pairs[:bitcoin])
   eth_profit=get_profit(@pairs[:ethereum])
+  ltc_profit=get_profit(@pairs[:litecoin])
+  profits=[btc_profit, eth_profit, ltc_profit]
   puts "#{btc_profit} #{eth_profit}"
   # binding.pry
-  # open_orders=gdax.orders.select {|i| i['status']=='open'}.map {|i| "#{i["created_at"]} - #{i["product_id"]} - #{i["price"]} - #{i["size"]} "}
-  # print open_orders
-  # telegram_send(open_orders)
-  # puts
-  #
-  # balance=gdax.accounts.map {|i| "#{i['currency']} - #{i['balance']} - #{i['hold']}"}
-  # puts balance
-  # telegram_send(balance)
   case
-    when btc_profit< -30, eth_profit < -30
-      telegram_send("BTC #{btc_profit} ETH #{eth_profit}")
-    when btc_profit >= 100, eth_profit >= 100
-      telegram_send("BTC #{btc_profit} ETH#{eth_profit}")
+    when profits.any? {|i| i< -30}
+      telegram_send("BTC #{btc_profit} ETH #{eth_profit} LTC #{ltc_profit}")
+    when profits.any? {|i| i>= 100}
+      telegram_send("BTC #{btc_profit} ETH #{eth_profit} LTC #{ltc_profit}")
+    when @closed_orders_number != last_filled.size
+      order=last_filled.last
+      @closed_orders_number=last_filled.size
+      telegram_send("Order closed C:#{order['product_id']} A:#{order['size'].to_f * order['price'].to_f}")
   end
 
   # puts "------------------------------------------------------"
@@ -38,6 +38,8 @@ listen=-> {
           bot.api.send_message(chat_id: message.chat.id, text: "#{get_current_state}")
         when '/profit'
           bot.api.send_message(chat_id: message.chat.id, text: "BTC #{get_profit(@pairs[:bitcoin])} ETH #{get_profit(@pairs[:ethereum])}")
+        when '/open'
+          bot.api.send_message(chat_id: message.chat.id, text: "#{open_orders.empty? ? 'No open orders' : open_orders.pretty_inspect}")
       end
     end
   end
