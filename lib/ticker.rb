@@ -13,7 +13,7 @@ gdax_credentials=gdax_creds
 @delay=3600
 @pairs={bitcoin: "BTC-EUR", ethereum: "ETH-EUR", litecoin: "LTC-EUR"}
 
-telegram_send("Bot has been launched by #{`whoami`.chomp} on #{(`hostname`.chomp)} at #{Time.now.strftime('%H:%M')}")
+telegram_send("#{@bot_type} bot has been launched by #{`whoami`.chomp} on #{(`hostname`.chomp)} at #{Time.now.strftime('%H:%M')}")
 # print "What's your desired delay?: "
 # delay=gets.chomp.to_i
 
@@ -39,6 +39,9 @@ def calculate_historic(data)
   "#{data['product_id']}: #{calculate_position(data)}}"
 end
 
+def get_current_state
+  @gdax.accounts.map{|i| "C:#{i['currency']} B:#{i['balance']} A:#{i['available']} H:#{i['hold']}"}.pretty_inspect
+end
 
 # eval(gdax.server_epoch)[:iso].slice(0..18)
 
