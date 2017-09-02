@@ -75,4 +75,24 @@ def get_profit(pair)
   # calculate_position(update_price(get_bought(pair))) - calculate_position(get_bought(pair))
 end
 
+def get_price_limit(pair, func)
+  more= ->(a, b) {a>b}
+  less= ->(a, b) {a<b}
+  reduce= ->(f, a) {
+    get_historic_price("BTC-EUR", Time.now.to_date.prev_month.to_time.to_s, Time.now.to_s, 2592000).inject(a) do |acc, i|
+      if f.call(i['close'], acc)
+        i['close']
+      else
+        acc
+      end
+    end
+  }
+
+  if func==:max
+    reduce.call(more, 0)
+  else
+    reduce.call(less, 10000)
+  end
+end
+
 # eval(gdax.server_epoch)[:iso].slice(0..18)
