@@ -79,7 +79,7 @@ def get_price_limit(pair, func)
   more= ->(a, b) {a>b}
   less= ->(a, b) {a<b}
   reduce= ->(f, a) {
-    get_historic_price("BTC-EUR", Time.now.to_date.prev_month.to_time.to_s, Time.now.to_s, 2592000).inject(a) do |acc, i|
+    get_historic_price(pair, Time.now.to_date.prev_month.to_time.to_s, Time.now.to_s, 2592000).inject(a) do |acc, i|
       if f.call(i['close'], acc)
         i['close']
       else
