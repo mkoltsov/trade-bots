@@ -49,7 +49,9 @@ listen=-> {
           bot.api.send_message(chat_id: message.chat.id, text: "#{open_orders.empty? ? 'No open orders' : open_orders.pretty_inspect}")
         else
           if message.text.match?("historic")
-            bot.api.send_message(chat_id: message.chat.id, text: "Max: #{get_price_limit("#{message.text.split(' ')[1].upcase}-EUR", :max)} Min: #{get_price_limit(message.text.split(' ')[1], :min)}")
+            puts message.text
+            normalized=-> {"#{message.text.split(' ')[1].upcase}-EUR"}
+            bot.api.send_message(chat_id: message.chat.id, text: "Max: #{get_price_limit(normalized.call, :max)} Min: #{get_price_limit(normalized.call, :min)}")
           end
       end
     end
