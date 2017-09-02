@@ -40,7 +40,11 @@ listen=-> {
         when '/status'
           bot.api.send_message(chat_id: message.chat.id, text: "#{get_current_state}")
         when '/profit'
-          bot.api.send_message(chat_id: message.chat.id, text: "BTC #{get_profit(@pairs[:bitcoin])} ETH #{get_profit(@pairs[:ethereum])} LTC #{get_profit(@pairs[:litecoin])}")
+          begin
+            bot.api.send_message(chat_id: message.chat.id, text: "BTC #{get_profit(@pairs[:bitcoin])} ETH #{get_profit(@pairs[:ethereum])} LTC #{get_profit(@pairs[:litecoin])}")
+          rescue Coinbase::Exchange::RateLimitError
+            bot.api.send_message(chat_id: message.chat.id, text: "rate limit has been exceeded, try again later")
+          end
         when '/open'
           bot.api.send_message(chat_id: message.chat.id, text: "#{open_orders.empty? ? 'No open orders' : open_orders.pretty_inspect}")
       end
