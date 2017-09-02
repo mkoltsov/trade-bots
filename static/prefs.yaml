@@ -1,0 +1,6 @@
+thresholds:
+  raising: 100
+  falling: -250
+
+delays:
+  ticker: 60

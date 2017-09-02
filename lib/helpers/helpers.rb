@@ -36,4 +36,7 @@ module Helpers
     Telegram::Bot::Client.run(telegram_token) {|bot| bot.api.send_message(chat_id: '335253154', text: text_to_send.to_s)}
   end
 
+  def preferences
+      file_yaml("prefs.yaml")
+  end
 end
