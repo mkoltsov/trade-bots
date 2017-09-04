@@ -42,6 +42,7 @@ GEM
       method_source (~> 0.8.1)
       slop (~> 3.4)
     public_suffix (3.0.0)
+    redis (4.0.0)
     slop (3.6.0)
     telegram-bot-ruby (0.8.3)
       faraday
@@ -62,6 +63,7 @@ PLATFORMS
 DEPENDENCIES
   coinbase-exchange
   pry
+  redis
   telegram-bot-ruby
 
 RUBY VERSION

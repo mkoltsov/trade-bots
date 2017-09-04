@@ -6,3 +6,4 @@ ruby '2.4.1'
 gem "telegram-bot-ruby"
 gem "pry"
 gem "coinbase-exchange"
+gem "redis"

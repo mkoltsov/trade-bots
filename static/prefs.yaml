@@ -1,6 +1,13 @@
 thresholds:
-  raising: 100
-  falling: -300
+  raising:
+        eth: 100
+        btc: 100
+        ltc: 100
+
+  falling:
+        eth: -320
+        btc: -20
+        ltc: -10
 
 delays:
   ticker: 60

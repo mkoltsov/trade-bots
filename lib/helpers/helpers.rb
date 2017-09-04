@@ -3,6 +3,9 @@ module Helpers
   require 'json'
   require 'yaml'
   require 'telegram/bot'
+  require 'redis'
+
+  @@redis = Redis.new
 
   def files_dir
     Pathname.new(__FILE__).realpath.parent.parent.parent + 'static'
@@ -37,6 +40,14 @@ module Helpers
   end
 
   def preferences
-      file_yaml("prefs.yaml")
+    file_yaml("prefs.yaml")
+  end
+
+  def get_key_from_redis(key)
+    @@redis.get(key)
+  end
+
+  def set_key_in_redis(key, value)
+    @@redis.set(key, value)
   end
 end
