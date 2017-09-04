@@ -1,5 +1,17 @@
 #!/usr/bin/env ruby
 
+def calculate_profit(pair)
+  tries||=10
+  get_profit(pair)
+rescue Coinbase::Exchange::RateLimitError
+  if (tries -= 1) > 0
+    retry
+  else
+    puts "The number of retries has been exceeded"
+  end
+end
+
+
 main_loop= ->(arg) {loop do
   @bot_type="Ticker"
   require './lib/ticker.rb'
@@ -7,9 +19,9 @@ main_loop= ->(arg) {loop do
   @delay_ticker=preferences['delays']['ticker']
   @thresholds=preferences['thresholds']
 
-  btc_profit = get_profit(@pairs[:bitcoin])
-  eth_profit=get_profit(@pairs[:ethereum])
-  ltc_profit=get_profit(@pairs[:litecoin])
+  btc_profit = calculate_profit(@pairs[:bitcoin])
+  eth_profit=calculate_profit(@pairs[:ethereum])
+  ltc_profit=calculate_profit(@pairs[:litecoin])
   profits=[btc_profit, eth_profit, ltc_profit]
 
   puts "#{btc_profit} #{eth_profit} #{ltc_profit}"
