@@ -36,6 +36,7 @@ main_loop= ->(arg) {loop do
     # when btc_profit >= thresholds['raising']['btc'], eth_profit >= thresholds['raising']['eth'], ltc_profit  >= thresholds['raising']['ltc']
     #   telegram_send("Profits BTC #{btc_profit} ETH #{eth_profit} LTC #{ltc_profit}")
     when prices.any? {|k, v| v.to_f > max_prices[k].to_f || v.to_f< min_prices[k].to_f}
+      puts "new max/min #{prices} - #{max_prices} - #{min_prices}"
       prices.each do |k, v|
         if v.to_f> max_prices[k].to_f
           set_key_in_redis("#{k}-MAX", v)
@@ -74,7 +75,7 @@ listen=-> {
         when '/open'
           bot.api.send_message(chat_id: message.chat.id, text: "#{open_orders.empty? ? 'No open orders' : open_orders.pretty_inspect}")
         else
-          if message.text.match?("historic")
+          if message.text.match?("historic") && (message.text.match?("btc") || message.text.match?("ltc") || message.text.match?("eth"))
             puts message.text
             normalized=-> {"#{message.text.split(' ')[1].upcase}-EUR"}
             bot.api.send_message(chat_id: message.chat.id, text: "Max: #{get_price_limit(normalized.call, :max)} Min: #{get_price_limit(normalized.call, :min)}")
