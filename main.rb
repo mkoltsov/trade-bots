@@ -26,9 +26,9 @@ main_loop= ->(arg) {loop do
   puts "#{btc_profit} #{eth_profit} #{ltc_profit}"
   # binding.pry
 
-  prices=Hash[@pairs.invert.map{|k,v| [k, get_current_price(k)]}]
-  max_prices=Hash[@pairs.invert.map{|k,v| get_key_from_redis("#{k}-MAX")}]
-  min_prices=Hash[@pairs.invert.map{|k,v| get_key_from_redis("#{k}-MIN")}]
+  prices=Hash[@pairs.invert.map{|k,_| [k, get_current_price(k)]}]
+  max_prices=Hash[@pairs.invert.map{|k,_| [k, get_key_from_redis("#{k}-MAX")]}]
+  min_prices=Hash[@pairs.invert.map{|k,_| [k, get_key_from_redis("#{k}-MIN")]}]
 
   case
     when update_mins_max(btc_profit, eth_profit, ltc_profit)
