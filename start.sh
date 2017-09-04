@@ -1,9 +1,5 @@
 #!/bin/bash
 
-pkill -f 'ruby'
-
 git pull
 
-nohup ruby ./main.rb --start worker-1 &
-
-nohup ruby ./main.rb --listen worker-2 &
+systemctl restart my_worker-1.service my_worker-2.service
