@@ -96,25 +96,25 @@ def get_price_limit(pair, func)
 end
 
 def update_mins_max(btc_profit, eth_profit, ltc_profit)
-  if get_key_from_redis("BTC_MAX").to_f> btc_profit
+  if  btc_profit > get_key_from_redis("BTC_MAX").to_f
     set_key_in_redis("BTC_MAX", btc_profit)
-  elsif get_key_from_redis("BTC_MIN").to_f< btc_profit
+  elsif btc_profit < get_key_from_redis("BTC_MIN").to_f
     set_key_in_redis("BTC_MIN", btc_profit)
     return true
   end
 
-  if get_key_from_redis("LTC_MAX").to_f> ltc_profit
+  if ltc_profit > get_key_from_redis("LTC_MAX").to_f
     set_key_in_redis("LTC_MAX", ltc_profit)
-  elsif get_key_from_redis("LTC_MIN").to_f< ltc_profit
+  elsif ltc_profit < get_key_from_redis("LTC_MIN").to_f
     set_key_in_redis("LTC_MIN", ltc_profit)
     return true
   end
 
-  if get_key_from_redis("ETH_MIN").to_f< eth_profit
+  if eth_profit < get_key_from_redis("ETH_MIN").to_f
     set_key_in_redis("ETH_MIN", eth_profit)
     return true
 
-  elsif get_key_from_redis("ETH_MAX").to_f> eth_profit
+  elsif eth_profit> get_key_from_redis("ETH_MAX").to_f
     set_key_in_redis("ETH_MAX", eth_profit)
   end
   return false
