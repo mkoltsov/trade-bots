@@ -25,11 +25,26 @@ main_loop= ->(arg) {loop do
 
   puts "#{btc_profit} #{eth_profit} #{ltc_profit}"
   # binding.pry
+
+  prices=Hash[@pairs.invert.map{|k,v| [k, get_current_price(k)]}]
+  max_prices=Hash[@pairs.invert.map{|k,v| get_key_from_redis("#{k}-MAX")}]
+  min_prices=Hash[@pairs.invert.map{|k,v| get_key_from_redis("#{k}-MIN")}]
+
   case
     when update_mins_max(btc_profit, eth_profit, ltc_profit)
-      telegram_send("Time to buy? BTC #{btc_profit} ETH #{eth_profit} LTC #{ltc_profit}")
+      telegram_send("Profit/Loss indicator BTC #{btc_profit} ETH #{eth_profit} LTC #{ltc_profit}")
     # when btc_profit >= thresholds['raising']['btc'], eth_profit >= thresholds['raising']['eth'], ltc_profit  >= thresholds['raising']['ltc']
     #   telegram_send("Profits BTC #{btc_profit} ETH #{eth_profit} LTC #{ltc_profit}")
+    when prices.any? {|k, v| v.to_f > max_prices[k].to_f || v< min_prices[k].to_f}
+      prices.each do |k, v|
+        if v.to_f> max_prices[k].to_f
+          set_key_in_redis("#{k}-MAX", v)
+          telegram_send("MAX value for #{k} set to #{v}")
+        elsif v< min_prices[k]
+          set_key_in_redis("#{k}-MIN", v)
+          telegram_send("MIN value for #{k} set to #{v}")
+        end
+      end
     when @closed_orders_number != last_filled.size
       order=last_filled.last
       @closed_orders_number=last_filled.size
