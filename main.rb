@@ -64,6 +64,10 @@ listen=-> {
       case message.text
         when '/price'
           bot.api.send_message(chat_id: message.chat.id, text: "BTC:#{get_current_price(@pairs[:bitcoin])} LTC:#{get_current_price(@pairs[:litecoin]) } ETH:#{get_current_price(@pairs[:ethereum]) }")
+        when '/max'
+          bot.api.send_message(chat_id: message.chat.id, text: "#{@pairs.invert.map{|k,_| [k, get_key_from_redis("#{k}-MAX")]}.inspect}")
+        when '/min'
+          bot.api.send_message(chat_id: message.chat.id, text: "#{@pairs.invert.map{|k,_| [k, get_key_from_redis("#{k}-MIN")]}.inspect}")
         when '/status'
           bot.api.send_message(chat_id: message.chat.id, text: "#{get_current_state}")
         when '/profit'
