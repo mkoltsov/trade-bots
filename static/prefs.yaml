@@ -1,6 +1,6 @@
 thresholds:
   raising: 100
-  falling: -250
+  falling: -300
 
 delays:
   ticker: 60
