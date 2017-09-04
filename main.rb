@@ -35,12 +35,12 @@ main_loop= ->(arg) {loop do
       telegram_send("Profit/Loss indicator BTC #{btc_profit} ETH #{eth_profit} LTC #{ltc_profit}")
     # when btc_profit >= thresholds['raising']['btc'], eth_profit >= thresholds['raising']['eth'], ltc_profit  >= thresholds['raising']['ltc']
     #   telegram_send("Profits BTC #{btc_profit} ETH #{eth_profit} LTC #{ltc_profit}")
-    when prices.any? {|k, v| v.to_f > max_prices[k].to_f || v< min_prices[k].to_f}
+    when prices.any? {|k, v| v.to_f > max_prices[k].to_f || v.to_f< min_prices[k].to_f}
       prices.each do |k, v|
         if v.to_f> max_prices[k].to_f
           set_key_in_redis("#{k}-MAX", v)
           telegram_send("MAX value for #{k} set to #{v}")
-        elsif v< min_prices[k]
+        elsif v.to_f< min_prices[k].to_f
           set_key_in_redis("#{k}-MIN", v)
           telegram_send("MIN value for #{k} set to #{v}")
         end
