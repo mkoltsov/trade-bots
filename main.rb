@@ -24,10 +24,10 @@ main_loop= ->(arg) {loop do
   ltc_profit=calculate_profit(@pairs[:litecoin])
 
   puts "#{btc_profit} #{eth_profit} #{ltc_profit}"
-  binding.pry
+  # binding.pry
   case
     when update_mins_max(btc_profit, eth_profit, ltc_profit)
-      telegram_send("Losses BTC #{btc_profit} ETH #{eth_profit} LTC #{ltc_profit}")
+      telegram_send("Time to buy? BTC #{btc_profit} ETH #{eth_profit} LTC #{ltc_profit}")
     # when btc_profit >= thresholds['raising']['btc'], eth_profit >= thresholds['raising']['eth'], ltc_profit  >= thresholds['raising']['ltc']
     #   telegram_send("Profits BTC #{btc_profit} ETH #{eth_profit} LTC #{ltc_profit}")
     when @closed_orders_number != last_filled.size
