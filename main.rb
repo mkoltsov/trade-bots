@@ -67,9 +67,9 @@ listen=-> {
         when '/max'
           bot.api.send_message(chat_id: message.chat.id, text: "#{@pairs.invert.map{|k,_| [k, get_key_from_redis("#{k}-MAX")]}.inspect}")
         when '/profit_max'
-          bot.api.send_message(chat_id: message.chat.id, text: "BTC #{get_key_from_redis('BTC-MAX').inspect} LTC #{get_key_from_redis('LTC-MAX').inspect} ETH #{get_key_from_redis('ETH-MAX').inspect}")
+          bot.api.send_message(chat_id: message.chat.id, text: "BTC #{get_key_from_redis('BTC_MAX').inspect} LTC #{get_key_from_redis('LTC_MAX').inspect} ETH #{get_key_from_redis('ETH_MAX').inspect}")
         when '/profit_min'
-          bot.api.send_message(chat_id: message.chat.id, text: "BTC #{get_key_from_redis('BTC-MIN').inspect} LTC #{get_key_from_redis('LTC-MIN').inspect} ETH #{get_key_from_redis('ETH-MIN').inspect}")
+          bot.api.send_message(chat_id: message.chat.id, text: "BTC #{get_key_from_redis('BTC_MIN').inspect} LTC #{get_key_from_redis('LTC_MIN').inspect} ETH #{get_key_from_redis('ETH_MIN').inspect}")
         when '/min'
           bot.api.send_message(chat_id: message.chat.id, text: "#{@pairs.invert.map{|k,_| [k, get_key_from_redis("#{k}-MIN")]}.inspect}")
         when '/status'
