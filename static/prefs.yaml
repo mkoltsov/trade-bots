@@ -9,5 +9,9 @@ thresholds:
         btc: -20
         ltc: -10
 
+offsets:
+  max_price: 1.0
+  min_price: 1.0
+
 delays:
   ticker: 60

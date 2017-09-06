@@ -11,13 +11,13 @@ rescue Coinbase::Exchange::RateLimitError
   end
 end
 
-#TODO think about saving the max lost period for a better buying opportunity
 main_loop= ->(arg) {loop do
   @bot_type="Ticker"
   require './lib/ticker.rb'
 
   @delay_ticker=preferences['delays']['ticker']
   thresholds=preferences['thresholds']
+  offsets==preferences['offsets']
 
   btc_profit = calculate_profit(@pairs[:bitcoin])
   eth_profit=calculate_profit(@pairs[:ethereum])
@@ -35,7 +35,7 @@ main_loop= ->(arg) {loop do
       telegram_send("Profit/Loss indicator BTC #{btc_profit} ETH #{eth_profit} LTC #{ltc_profit}")
     # when btc_profit >= thresholds['raising']['btc'], eth_profit >= thresholds['raising']['eth'], ltc_profit  >= thresholds['raising']['ltc']
     #   telegram_send("Profits BTC #{btc_profit} ETH #{eth_profit} LTC #{ltc_profit}")
-    when prices.any? {|k, v| v.to_f > max_prices[k].to_f || v.to_f< min_prices[k].to_f}
+    when prices.any? {|k, v| v.to_f >= max_prices[k].to_f + offsets['max_price'] || v.to_f < min_prices[k].to_f}
       puts "new max/min #{prices} - #{max_prices} - #{min_prices}"
       prices.each do |k, v|
         if v.to_f> max_prices[k].to_f
@@ -50,6 +50,8 @@ main_loop= ->(arg) {loop do
       order=last_filled.last
       @closed_orders_number=last_filled.size
       telegram_send("Order closed C:#{order['product_id']} A:#{order['size'].to_f * order['price'].to_f}")
+    else
+      telegram_send("Your command has not been recognized")
   end
 
   # puts "------------------------------------------------------"
