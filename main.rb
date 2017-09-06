@@ -17,7 +17,7 @@ main_loop= ->(arg) {loop do
 
   @delay_ticker=preferences['delays']['ticker']
   thresholds=preferences['thresholds']
-  offsets==preferences['offsets']
+  offsets=preferences['offsets']
 
   btc_profit = calculate_profit(@pairs[:bitcoin])
   eth_profit=calculate_profit(@pairs[:ethereum])
@@ -50,8 +50,6 @@ main_loop= ->(arg) {loop do
       order=last_filled.last
       @closed_orders_number=last_filled.size
       telegram_send("Order closed C:#{order['product_id']} A:#{order['size'].to_f * order['price'].to_f}")
-    else
-      telegram_send("Your command has not been recognized")
   end
 
   # puts "------------------------------------------------------"
@@ -89,6 +87,8 @@ listen=-> {
             puts message.text
             normalized=-> {"#{message.text.split(' ')[1].upcase}-EUR"}
             bot.api.send_message(chat_id: message.chat.id, text: "Max: #{get_price_limit(normalized.call, :max)} Min: #{get_price_limit(normalized.call, :min)}")
+          else
+            bot.api.send_message(chat_id: message.chat.id, text: "Your command #{message} has not been recognized")
           end
       end
     end
