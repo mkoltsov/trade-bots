@@ -53,7 +53,7 @@ main_loop= ->(arg) {loop do
       @closed_orders_number=last_filled.size
       telegram_send("Order closed C:#{order['product_id']} A:#{order['size'].to_f * order['price'].to_f}")
     when prices.any? {|k, v| v.to_f <= bought_prices[k].to_f + offsets['bought_price']}
-      telegram_send("bought price has been REACHED, sell immediately")
+      telegram_send("bought price has been REACHED, sell immediately #{prices.select {|k, v| v.to_f <= bought_prices[k].to_f + offsets['bought_price']}.pretty_inspect}")
   end
 
   # puts "------------------------------------------------------"

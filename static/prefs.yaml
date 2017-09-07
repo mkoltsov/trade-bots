@@ -12,7 +12,7 @@ thresholds:
 offsets:
   max_price: 1.0
   min_price: 1.0
-  bought_price: 5.0
+  bought_price: 1.0
 
 delays:
   ticker: 60
