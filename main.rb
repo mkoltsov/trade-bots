@@ -11,6 +11,7 @@ rescue Coinbase::Exchange::RateLimitError
   end
 end
 
+#TODO save the bought price and sell as soon as it is reached to stop the losses
 main_loop= ->(arg) {loop do
   @bot_type="Ticker"
   require './lib/ticker.rb'
@@ -26,9 +27,10 @@ main_loop= ->(arg) {loop do
   puts "#{btc_profit} #{eth_profit} #{ltc_profit}"
   # binding.pry
 
-  prices=Hash[@pairs.invert.map{|k,_| [k, get_current_price(k)]}]
-  max_prices=Hash[@pairs.invert.map{|k,_| [k, get_key_from_redis("#{k}-MAX")]}]
-  min_prices=Hash[@pairs.invert.map{|k,_| [k, get_key_from_redis("#{k}-MIN")]}]
+  prices=Hash[@pairs.invert.map {|k, _| [k, get_current_price(k)]}]
+  max_prices=Hash[@pairs.invert.map {|k, _| [k, get_key_from_redis("#{k}-MAX")]}]
+  min_prices=Hash[@pairs.invert.map {|k, _| [k, get_key_from_redis("#{k}-MIN")]}]
+  bought_prices=Hash[@pairs.invert.map {|k, _| [k, get_key_from_redis("#{k}-BOUGHT")]}]
 
   case
     when update_mins_max(btc_profit, eth_profit, ltc_profit)
@@ -50,6 +52,8 @@ main_loop= ->(arg) {loop do
       order=last_filled.last
       @closed_orders_number=last_filled.size
       telegram_send("Order closed C:#{order['product_id']} A:#{order['size'].to_f * order['price'].to_f}")
+    when prices.any? {|k, v| v.to_f <= bought_prices[k].to_f + offsets['bought_price']}
+      telegram_send("bought price has been REACHED, sell immediately")
   end
 
   # puts "------------------------------------------------------"
@@ -65,13 +69,13 @@ listen=-> {
         when '/price'
           bot.api.send_message(chat_id: message.chat.id, text: "BTC:#{get_current_price(@pairs[:bitcoin])} LTC:#{get_current_price(@pairs[:litecoin]) } ETH:#{get_current_price(@pairs[:ethereum]) }")
         when '/max'
-          bot.api.send_message(chat_id: message.chat.id, text: "#{@pairs.invert.map{|k,_| [k, get_key_from_redis("#{k}-MAX")]}.inspect}")
+          bot.api.send_message(chat_id: message.chat.id, text: "#{@pairs.invert.map {|k, _| [k, get_key_from_redis("#{k}-MAX")]}.inspect}")
         when '/profit_max'
           bot.api.send_message(chat_id: message.chat.id, text: "BTC #{get_key_from_redis('BTC_MAX').inspect} LTC #{get_key_from_redis('LTC_MAX').inspect} ETH #{get_key_from_redis('ETH_MAX').inspect}")
         when '/profit_min'
           bot.api.send_message(chat_id: message.chat.id, text: "BTC #{get_key_from_redis('BTC_MIN').inspect} LTC #{get_key_from_redis('LTC_MIN').inspect} ETH #{get_key_from_redis('ETH_MIN').inspect}")
         when '/min'
-          bot.api.send_message(chat_id: message.chat.id, text: "#{@pairs.invert.map{|k,_| [k, get_key_from_redis("#{k}-MIN")]}.inspect}")
+          bot.api.send_message(chat_id: message.chat.id, text: "#{@pairs.invert.map {|k, _| [k, get_key_from_redis("#{k}-MIN")]}.inspect}")
         when '/status'
           bot.api.send_message(chat_id: message.chat.id, text: "#{get_current_state}")
         when '/profit'
