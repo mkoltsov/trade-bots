@@ -51,6 +51,7 @@ main_loop= ->(arg) {loop do
     when @closed_orders_number != last_filled.size
       order=last_filled.last
       @closed_orders_number=last_filled.size
+      set_key_in_redis("#{order['product_id']}-BOUGHT", order['price'])
       telegram_send("Order closed C:#{order['product_id']} A:#{order['size'].to_f * order['price'].to_f}")
     when prices.any? {|k, v| v.to_f <= bought_prices[k].to_f + offsets['bought_price'] && get_account(k).first['balance'].to_f > 0}
       telegram_send("bought price has been REACHED, sell immediately #{prices.select {|k, v| v.to_f <= bought_prices[k].to_f + offsets['bought_price']}.pretty_inspect}")
