@@ -52,7 +52,7 @@ main_loop= ->(arg) {loop do
       order=last_filled.last
       @closed_orders_number=last_filled.size
       telegram_send("Order closed C:#{order['product_id']} A:#{order['size'].to_f * order['price'].to_f}")
-    when prices.any? {|k, v| v.to_f <= bought_prices[k].to_f + offsets['bought_price']}
+    when prices.any? {|k, v| v.to_f <= bought_prices[k].to_f + offsets['bought_price'] && get_account(k).to_f > 0}
       telegram_send("bought price has been REACHED, sell immediately #{prices.select {|k, v| v.to_f <= bought_prices[k].to_f + offsets['bought_price']}.pretty_inspect}")
   end
 
@@ -87,7 +87,7 @@ listen=-> {
         when '/open'
           bot.api.send_message(chat_id: message.chat.id, text: "#{open_orders.empty? ? 'No open orders' : open_orders.pretty_inspect}")
         else
-          if message.text && (message.text.match?("historic") && (message.text.match?("btc") || message.text.match?("ltc") || message.text.match?("eth")))
+          if message.text && ( message.text.match?("historic") && (message.text.match?("btc") || message.text.match?("ltc") || message.text.match?("eth")))
             puts message.text
             normalized=-> {"#{message.text.split(' ')[1].upcase}-EUR"}
             bot.api.send_message(chat_id: message.chat.id, text: "Max: #{get_price_limit(normalized.call, :max)} Min: #{get_price_limit(normalized.call, :min)}")
