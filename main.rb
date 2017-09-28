@@ -10,7 +10,7 @@ rescue Coinbase::Exchange::RateLimitError
     puts "The number of retries has been exceeded"
   end
 end
-
+@loss_notifications = true
 #TODO save the bought price and sell as soon as it is reached to stop the losses
 main_loop= ->(arg) {loop do
   @bot_type="Ticker"
@@ -34,7 +34,7 @@ main_loop= ->(arg) {loop do
 
   case
     when update_mins_max(btc_profit, eth_profit, ltc_profit)
-      telegram_send("Profit/Loss indicator BTC #{btc_profit} ETH #{eth_profit} LTC #{ltc_profit}")
+        telegram_send("Profit/Loss indicator BTC #{btc_profit} ETH #{eth_profit} LTC #{ltc_profit}") if loss_notifications
     # when btc_profit >= thresholds['raising']['btc'], eth_profit >= thresholds['raising']['eth'], ltc_profit  >= thresholds['raising']['ltc']
     #   telegram_send("Profits BTC #{btc_profit} ETH #{eth_profit} LTC #{ltc_profit}")
     when prices.any? {|k, v| v.to_f >= max_prices[k].to_f + offsets['max_price'] || v.to_f < min_prices[k].to_f}
@@ -53,7 +53,7 @@ main_loop= ->(arg) {loop do
       @closed_orders_number=last_filled.size
       set_key_in_redis("#{order['product_id']}-BOUGHT", order['price'])
       telegram_send("Order closed C:#{order['product_id']} A:#{order['size'].to_f * order['price'].to_f}")
-    when prices.any? {|k, v| v.to_f <= bought_prices[k].to_f + offsets['bought_price'] && get_account(k).first['balance'].to_f > 0}
+    when @loss_notifications && prices.any? {|k, v| v.to_f <= bought_prices[k].to_f + offsets['bought_price'] && get_account(k).first['balance'].to_f > 0}
       telegram_send("bought price has been REACHED, sell immediately #{prices.select {|k, v| v.to_f <= bought_prices[k].to_f + offsets['bought_price']}.pretty_inspect}")
   end
 
@@ -87,6 +87,10 @@ listen=-> {
           end
         when '/open'
           bot.api.send_message(chat_id: message.chat.id, text: "#{open_orders.empty? ? 'No open orders' : open_orders.pretty_inspect}")
+        when 'notify on'
+          @loss_notifications=true
+        when 'notify off'
+          @loss_notifications=false
         else
           if message.text && ( message.text.match?("historic") && (message.text.match?("btc") || message.text.match?("ltc") || message.text.match?("eth")))
             puts message.text
