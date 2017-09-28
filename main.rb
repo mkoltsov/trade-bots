@@ -87,10 +87,12 @@ listen=-> {
           end
         when '/open'
           bot.api.send_message(chat_id: message.chat.id, text: "#{open_orders.empty? ? 'No open orders' : open_orders.pretty_inspect}")
-        when 'notify on'
+        when '/notify on'
           @loss_notifications=true
-        when 'notify off'
+          bot.api.send_message(chat_id: message.chat.id, text: "notifications enabled")
+        when '/notify off'
           @loss_notifications=false
+          bot.api.send_message(chat_id: message.chat.id, text: "notifications disabled")
         else
           if message.text && ( message.text.match?("historic") && (message.text.match?("btc") || message.text.match?("ltc") || message.text.match?("eth")))
             puts message.text
