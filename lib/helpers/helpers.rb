@@ -50,4 +50,11 @@ module Helpers
   def set_key_in_redis(key, value)
     @@redis.set(key, value)
   end
+
+  def convert_to_bool(str)
+    map={'true'=> true, 'false' => false}
+    map.default="WTF"
+    map[str]
+  end
+
 end
