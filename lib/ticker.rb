@@ -4,6 +4,7 @@
 require './lib/markets/gdax'
 require './lib/helpers/helpers'
 require 'pry'
+require 'kraken_client'
 
 include Helpers
 
@@ -30,7 +31,12 @@ telegram_send("#{@bot_type} bot has been launched by #{`whoami`.chomp} on #{(`ho
 # end
 
 def get_current_price(pair)
-  @gdax.last_trade(product_id: pair)['price']
+  case
+    when @pairs.any? {|k, v| v==pair}
+      @gdax.last_trade(product_id: pair)['price']
+    when pair=='XRP'
+      KrakenClient.load.public.ticker('XRPEUR')['XXRPZEUR']['c'][0]
+  end
 end
 
 def get_historic_price(pair, start, finish, granularity)
