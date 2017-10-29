@@ -3,11 +3,11 @@
 def calculate_profit(pair)
   tries||=10
   get_profit(pair)
-rescue Coinbase::Exchange::RateLimitError
+rescue Exception => e
   if (tries -= 1) > 0
     retry
   else
-    puts "The number of retries has been exceeded"
+    puts "The number of retries has been exceeded, #{e}"
   end
 end
 #TODO save the bought price and sell as soon as it is reached to stop the losses
