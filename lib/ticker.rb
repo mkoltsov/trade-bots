@@ -61,7 +61,7 @@ end
 
 def calculate_deposits_amount(pair)
   price=->(date) {get_historic_price(pair, Date.parse(date).to_time.to_s, Date.parse(date).next_day.to_time.to_s, 36000).first['close']}
-  @gdax.account_history(get_account(pair).first['id']).select {|i| i['type']=='transfer'}.inject(0) {|acc, i| acc + (i['details']['transfer_type']=='deposit' ? i['amount'].to_f * price.call(i["created_at"]).to_f : -(i['amount'].to_f * price.call(i["created_at"]).to_f))}
+  @gdax.account_history(get_account(pair).@first['id']).select {|i| i['type']=='transfer'}.inject(0) {|acc, i| acc + (i['details']['transfer_type']=='deposit' ? i['amount'].to_f * price.call(i["created_at"]).to_f : -(i['amount'].to_f * price.call(i["created_at"]).to_f))}
 end
 
 def calculate_balance_by_fills(pair)
