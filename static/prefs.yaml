@@ -16,3 +16,4 @@ offsets:
 
 delays:
   ticker: 60
+retries: 999

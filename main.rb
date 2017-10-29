@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 def calculate_profit(pair)
-  tries||=10
+  tries||=preferences['retries']
   get_profit(pair)
 rescue Exception => e
   if (tries -= 1) > 0
@@ -12,6 +12,7 @@ rescue Exception => e
 end
 #TODO save the bought price and sell as soon as it is reached to stop the losses
 main_loop= ->(arg) {loop do
+  begin
   @bot_type="Ticker"
   require './lib/ticker.rb'
 
@@ -55,7 +56,9 @@ main_loop= ->(arg) {loop do
     when prices.any? {|k, v| v.to_f <= bought_prices[k].to_f + offsets['bought_price'] && get_account(k).first['balance'].to_f > 0}
       telegram_send("bought price has been REACHED, sell immediately #{prices.select {|k, v| v.to_f <= bought_prices[k].to_f + offsets['bought_price']}.pretty_inspect}") if convert_to_bool(get_key_from_redis("NOTIFICATIONS"))
   end
-
+  rescue Exception => e
+    puts "GOT EXCEPTION #{e}"
+  end
   # puts "------------------------------------------------------"
   sleep(@delay_ticker)
 end}
