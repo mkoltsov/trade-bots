@@ -72,7 +72,8 @@ listen=-> {
         case message.text
           when '/price'
             begin
-              bot.api.send_message(chat_id: message.chat.id, text: "BTC:#{get_current_price(@pairs[:bitcoin])} LTC:#{get_current_price(@pairs[:litecoin]) } ETH:#{get_current_price(@pairs[:ethereum]) } XRP:#{get_current_price('XRP') } BCH:#{get_current_price(@pairs[:bch]) }")
+              # bot.api.send_message(chat_id: message.chat.id, text: "BTC:#{get_current_price(@pairs[:bitcoin])} LTC:#{get_current_price(@pairs[:litecoin]) } ETH:#{get_current_price(@pairs[:ethereum]) } XRP:#{get_current_price('XRP') } BCH:#{get_current_price(@pairs[:bch]) }")
+              bot.api.send_message(chat_id: message.chat.id, text: "BTC:#{get_current_price(@pairs[:bitcoin])} LTC:#{get_current_price(@pairs[:litecoin]) } ETH:#{get_current_price(@pairs[:ethereum]) } XRP:#{get_current_price('XRP') } ")
             rescue Coinbase::Exchange::RateLimitError
               bot.api.send_message(chat_id: message.chat.id, text: "rate limit has been exceeded, try again later")
             end
