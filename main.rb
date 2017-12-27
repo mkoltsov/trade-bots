@@ -11,11 +11,11 @@ rescue Exception => e
   end
 end
 #TODO save the bought price and sell as soon as it is reached to stop the losses
-@delay_ticker=preferences['delays']['ticker']
 main_loop= ->(arg) {loop do
   begin
   @bot_type="Ticker"
   require './lib/ticker.rb'
+  @delay_ticker=preferences['delays']['ticker']
   thresholds=preferences['thresholds']
   offsets=preferences['offsets']
 
@@ -65,6 +65,7 @@ end}
 listen=-> {
   @bot_type="Listen"
   require './lib/ticker.rb'
+  @delay_ticker=preferences['delays']['ticker']
   Telegram::Bot::Client.run(telegram_token) do |bot|
     begin
       bot.listen do |message|
