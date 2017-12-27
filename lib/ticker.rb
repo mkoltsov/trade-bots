@@ -63,7 +63,7 @@ def calculate_deposits_amount(pair)
   price=->(date) {get_historic_price(pair, Date.parse(date).to_time.to_s, Date.parse(date).next_day.to_time.to_s, 36000).first['close']}
   @gdax.account_history(get_account(pair).first['id'])
       .select {|i| i['type']=='transfer'}
-      .inject(0) {|acc, i| acc + (i['details']['transfer_type']=='deposit' ? i['amount'].to_f * price.call(i["created_at"]).to_f : -(i['amount'].to_f * price.call(i["created_at"]).to_f))}
+      .inject(0) {|acc, i| acc + (i['details']['transfer_type']=='deposit' ? i['amount'].to_f * price.(i["created_at"]).to_f : -(i['amount'].to_f * price.(i["created_at"]).to_f))}
 end
 
 def calculate_balance_by_fills(pair)
@@ -88,7 +88,7 @@ def get_price_limit(pair, func)
   less= ->(a, b) {a<b}
   reduce= ->(f, a) {
     get_historic_price(pair, Time.now.to_date.prev_month.to_time.to_s, Time.now.to_s, 2592000).inject(a) do |acc, i|
-      if f.call(i['close'], acc)
+      if f.(i['close'], acc)
         i['close']
       else
         acc
@@ -97,9 +97,9 @@ def get_price_limit(pair, func)
   }
 
   if func==:max
-    reduce.call(more, 0)
+    reduce.(more, 0)
   else
-    reduce.call(less, 10000)
+    reduce.(less, 10000)
   end
 end
 

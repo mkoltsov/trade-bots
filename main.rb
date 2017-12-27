@@ -110,7 +110,7 @@ listen=-> {
             if message.text && (message.text.match?("historic") && (message.text.match?("btc") || message.text.match?("ltc") || message.text.match?("eth")))
               puts message.text
               normalized=-> {"#{message.text.split(' ')[1].upcase}-EUR"}
-              bot.api.send_message(chat_id: message.chat.id, text: "Max: #{get_price_limit(normalized.call, :max)} Min: #{get_price_limit(normalized.call, :min)}")
+              bot.api.send_message(chat_id: message.chat.id, text: "Max: #{get_price_limit(normalized.(), :max)} Min: #{get_price_limit(normalized.(), :min)}")
             else
               bot.api.send_message(chat_id: message.chat.id, text: "Your command #{message} has not been recognized")
             end
@@ -124,9 +124,9 @@ listen=-> {
 
 case ARGV[0]
   when "--start"
-    main_loop.call(ARGV[1])
+    main_loop.(ARGV[1])
   when "--listen"
-    listen.call
+    listen.()
   else
     puts "No arguments provided"
     return
