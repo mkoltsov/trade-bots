@@ -67,43 +67,51 @@ listen=-> {
   @bot_type="Listen"
   require './lib/ticker.rb'
   Telegram::Bot::Client.run(telegram_token) do |bot|
-    bot.listen do |message|
-      case message.text
-        when '/price'
-          bot.api.send_message(chat_id: message.chat.id, text: "BTC:#{get_current_price(@pairs[:bitcoin])} LTC:#{get_current_price(@pairs[:litecoin]) } ETH:#{get_current_price(@pairs[:ethereum]) } XRP:#{get_current_price('XRP') }")
-        when '/max'
-          bot.api.send_message(chat_id: message.chat.id, text: "#{@pairs.invert.map {|k, _| [k, get_key_from_redis("#{k}-MAX")]}.inspect}")
-        when '/profit_max'
-          bot.api.send_message(chat_id: message.chat.id, text: "BTC #{get_key_from_redis('BTC_MAX').inspect} LTC #{get_key_from_redis('LTC_MAX').inspect} ETH #{get_key_from_redis('ETH_MAX').inspect}")
-        when '/profit_min'
-          bot.api.send_message(chat_id: message.chat.id, text: "BTC #{get_key_from_redis('BTC_MIN').inspect} LTC #{get_key_from_redis('LTC_MIN').inspect} ETH #{get_key_from_redis('ETH_MIN').inspect}")
-        when '/min'
-          bot.api.send_message(chat_id: message.chat.id, text: "#{@pairs.invert.map {|k, _| [k, get_key_from_redis("#{k}-MIN")]}.inspect}")
-        when '/status'
-          bot.api.send_message(chat_id: message.chat.id, text: "#{get_current_state}")
-        when '/profit'
-          begin
-            bot.api.send_message(chat_id: message.chat.id, text: "BTC #{get_profit(@pairs[:bitcoin])} ETH #{get_profit(@pairs[:ethereum])} LTC #{get_profit(@pairs[:litecoin])}")
-          rescue Coinbase::Exchange::RateLimitError
-            bot.api.send_message(chat_id: message.chat.id, text: "rate limit has been exceeded, try again later")
-          end
-        when '/open'
-          bot.api.send_message(chat_id: message.chat.id, text: "#{open_orders.empty? ? 'No open orders' : open_orders.pretty_inspect}")
-        when '/notify on'
-          set_key_in_redis("NOTIFICATIONS", "true")
-          bot.api.send_message(chat_id: message.chat.id, text: "notifications enabled")
-        when '/notify off'
-          set_key_in_redis("NOTIFICATIONS", "false")
-          bot.api.send_message(chat_id: message.chat.id, text: "notifications disabled")
-        else
-          if message.text && ( message.text.match?("historic") && (message.text.match?("btc") || message.text.match?("ltc") || message.text.match?("eth")))
-            puts message.text
-            normalized=-> {"#{message.text.split(' ')[1].upcase}-EUR"}
-            bot.api.send_message(chat_id: message.chat.id, text: "Max: #{get_price_limit(normalized.call, :max)} Min: #{get_price_limit(normalized.call, :min)}")
+    begin
+      bot.listen do |message|
+        case message.text
+          when '/price'
+            begin
+              bot.api.send_message(chat_id: message.chat.id, text: "BTC:#{get_current_price(@pairs[:bitcoin])} LTC:#{get_current_price(@pairs[:litecoin]) } ETH:#{get_current_price(@pairs[:ethereum]) } XRP:#{get_current_price('XRP') } BCH:#{get_current_price(@pairs[:bch]) }")
+            rescue Coinbase::Exchange::RateLimitError
+              bot.api.send_message(chat_id: message.chat.id, text: "rate limit has been exceeded, try again later")
+            end
+          when '/max'
+            bot.api.send_message(chat_id: message.chat.id, text: "#{@pairs.invert.map {|k, _| [k, get_key_from_redis("#{k}-MAX")]}.inspect}")
+          when '/profit_max'
+            bot.api.send_message(chat_id: message.chat.id, text: "BTC #{get_key_from_redis('BTC_MAX').inspect} LTC #{get_key_from_redis('LTC_MAX').inspect} ETH #{get_key_from_redis('ETH_MAX').inspect}")
+          when '/profit_min'
+            bot.api.send_message(chat_id: message.chat.id, text: "BTC #{get_key_from_redis('BTC_MIN').inspect} LTC #{get_key_from_redis('LTC_MIN').inspect} ETH #{get_key_from_redis('ETH_MIN').inspect}")
+          when '/min'
+            bot.api.send_message(chat_id: message.chat.id, text: "#{@pairs.invert.map {|k, _| [k, get_key_from_redis("#{k}-MIN")]}.inspect}")
+          when '/status'
+            bot.api.send_message(chat_id: message.chat.id, text: "#{get_current_state}")
+          when '/profit'
+            begin
+              bot.api.send_message(chat_id: message.chat.id, text: "BTC #{get_profit(@pairs[:bitcoin])} ETH #{get_profit(@pairs[:ethereum])} LTC #{get_profit(@pairs[:litecoin])}")
+            rescue Coinbase::Exchange::RateLimitError
+              bot.api.send_message(chat_id: message.chat.id, text: "rate limit has been exceeded, try again later")
+            end
+          when '/open'
+            bot.api.send_message(chat_id: message.chat.id, text: "#{open_orders.empty? ? 'No open orders' : open_orders.pretty_inspect}")
+          when '/notify on'
+            set_key_in_redis("NOTIFICATIONS", "true")
+            bot.api.send_message(chat_id: message.chat.id, text: "notifications enabled")
+          when '/notify off'
+            set_key_in_redis("NOTIFICATIONS", "false")
+            bot.api.send_message(chat_id: message.chat.id, text: "notifications disabled")
           else
-            bot.api.send_message(chat_id: message.chat.id, text: "Your command #{message} has not been recognized")
-          end
+            if message.text && (message.text.match?("historic") && (message.text.match?("btc") || message.text.match?("ltc") || message.text.match?("eth")))
+              puts message.text
+              normalized=-> {"#{message.text.split(' ')[1].upcase}-EUR"}
+              bot.api.send_message(chat_id: message.chat.id, text: "Max: #{get_price_limit(normalized.call, :max)} Min: #{get_price_limit(normalized.call, :min)}")
+            else
+              bot.api.send_message(chat_id: message.chat.id, text: "Your command #{message} has not been recognized")
+            end
+        end
       end
+    rescue Exception => e
+      puts "GOT EXCEPTION #{e}"
     end
   end
 }
