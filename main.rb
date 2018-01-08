@@ -72,8 +72,17 @@ listen=-> {
         case message.text
           when '/price'
             require 'httparty'
-            msg = JSON.parse(HTTParty.get("https://api.coinmarketcap.com/v1/ticker/?limit=100&convert=EUR").body).select{|e| @cmk.include?(e["id"])}.map{|el| "#{el['symbol']} - #{el["price_eur"]} - #{el["rank"]} - #{el["percent_change_1h"]}  - #{el["percent_change_24h"]}  - #{el["percent_change_7d"]}"}
-            bot.api.send_message(chat_id: message.chat.id, text:"#{msg}" )
+            exit=false
+            until exit do
+              begin
+                msg = JSON.parse(HTTParty.get('https://api.coinmarketcap.com/v1/ticker/?limit=100&convert=EUR').body).select {|e| @cmk.include?(e["id"])}.map {|el| "#{el['symbol']} - #{el["price_eur"]} - #{el["rank"]} - #{el["percent_change_1h"]}  - #{el["percent_change_24h"]}  - #{el["percent_change_7d"]}"}
+                bot.api.send_message(chat_id: message.chat.id, text: "#{msg}")
+                exit=true
+              rescue Exception => e
+                bot.api.send_message(chat_id: message.chat.id, text: "got #{e}, will retry")
+                sleep(@delay_ticker)
+              end
+            end
           when '/max'
             bot.api.send_message(chat_id: message.chat.id, text: "#{@pairs.invert.map {|k, _| [k, get_key_from_redis("#{k}-MAX")]}.inspect}")
           when '/profit_max'
