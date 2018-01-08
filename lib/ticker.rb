@@ -14,6 +14,8 @@ gdax_credentials=gdax_creds
 
 @pairs={bitcoin: 'BTC-EUR', ethereum: 'ETH-EUR', litecoin: 'LTC-EUR'}#, bch: 'BCH-EUR'}
 
+@cmk=%w(ethereum ripple litecoin)
+
 def last_filled
   @gdax.orders.select {|i| i["status"]=='done'}.sort_by {|i| i["done_at"]}
 end
