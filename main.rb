@@ -79,7 +79,7 @@ listen=-> {
           until exit do
             begin
               msg = JSON.parse(HTTParty.get('https://api.coinmarketcap.com/v1/ticker/?limit=1500&convert=EUR').body).select {|e| arr.include?(e["id"])}.map {|el| "<pre>#{el['symbol']} - #{el["price_eur"]} - #{el["rank"]} - #{el["percent_change_1h"]}  - #{el["percent_change_24h"]}  - #{el["percent_change_7d"]}</pre>"}
-              bot.api.send_message(chat_id: message.chat.id, text: "#{msg}".inspect.delete ("[\"]"), parse_mode: 'HTML')
+              bot.api.send_message(chat_id: message.chat.id, text: "#{msg}".inspect.delete('[\"]').delete(',').delete('\\'), parse_mode: 'HTML')
               exit=true
             rescue Exception => e
               bot.api.send_message(chat_id: message.chat.id, text: "got #{e}, will retry")
