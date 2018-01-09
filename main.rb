@@ -70,22 +70,24 @@ listen=-> {
   candidates=preferences['candidates']
   Telegram::Bot::Client.run(telegram_token) do |bot|
 
-    price_notifier = -> (arr) {
-      require 'httparty'
-      exit=false
-      until exit do
-        begin
-          msg = JSON.parse(HTTParty.get('https://api.coinmarketcap.com/v1/ticker/?limit=1500&convert=EUR').body).select {|e| arr.include?(e["id"])}.map {|el| "#{el['symbol']} - #{el["price_eur"]} - #{el["rank"]} - #{el["percent_change_1h"]}  - #{el["percent_change_24h"]}  - #{el["percent_change_7d"]}"}
-          bot.api.send_message(chat_id: message.chat.id, text: "#{msg}")
-          exit=true
-        rescue Exception => e
-          bot.api.send_message(chat_id: message.chat.id, text: "got #{e}, will retry")
-          sleep(@delay_ticker)
-        end
-      end
-    }
     begin
       bot.listen do |message|
+
+        price_notifier = -> (arr) {
+          require 'httparty'
+          exit=false
+          until exit do
+            begin
+              msg = JSON.parse(HTTParty.get('https://api.coinmarketcap.com/v1/ticker/?limit=1500&convert=EUR').body).select {|e| arr.include?(e["id"])}.map {|el| "#{el['symbol']} - #{el["price_eur"]} - #{el["rank"]} - #{el["percent_change_1h"]}  - #{el["percent_change_24h"]}  - #{el["percent_change_7d"]}"}
+              bot.api.send_message(chat_id: message.chat.id, text: "#{msg}")
+              exit=true
+            rescue Exception => e
+              bot.api.send_message(chat_id: message.chat.id, text: "got #{e}, will retry")
+              sleep(@delay_ticker)
+            end
+          end
+        }
+
         case message.text
           when '/price'
             price_notifier.(cmk)
