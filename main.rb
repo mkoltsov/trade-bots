@@ -69,7 +69,8 @@ listen=-> {
   cmk=preferences['coins_interested']
   candidates=preferences['candidates']
   Telegram::Bot::Client.run(telegram_token) do |bot|
-    def price_notifier(arr)
+
+    price_notifier = -> (arr) {
       require 'httparty'
       exit=false
       until exit do
@@ -82,14 +83,14 @@ listen=-> {
           sleep(@delay_ticker)
         end
       end
-    end
+    }
     begin
       bot.listen do |message|
         case message.text
           when '/price'
-            price_notifier(cmk)
+            price_notifier.(cmk)
           when '/candidates'
-            price_notifier(candidates)
+            price_notifier.(candidates)
           when '/max'
             bot.api.send_message(chat_id: message.chat.id, text: "#{@pairs.invert.map {|k, _| [k, get_key_from_redis("#{k}-MAX")]}.inspect}")
           when '/profit_max'
