@@ -17,3 +17,19 @@ offsets:
 delays:
   ticker: 60
 retries: 999
+coins_interested:
+  - basic-attention-token
+  - poet
+  - ethlend
+  - cardano
+  - ethereum
+  - ripple
+  - litecoin
+candidates:
+  - binance-coin
+  - kucoin-shares
+  - kin
+  - neo
+  - nebulas-token
+  - eccoin
+  - etherparty
