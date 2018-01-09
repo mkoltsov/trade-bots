@@ -33,3 +33,6 @@ candidates:
   - nebulas-token
   - eccoin
   - etherparty
+queries:
+  get_price: https://api.coinmarketcap.com/v1/ticker/?limit=1500&convert=EUR
+  research: https://api.coinmarketcap.com/v1/ticker/?limit=1500&start=200&convert=EUR

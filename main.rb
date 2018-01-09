@@ -73,12 +73,24 @@ listen=-> {
     begin
       bot.listen do |message|
 
-        price_notifier = -> (arr) {
+        price_notifier = -> (arr, lamb=nil, query=nil) {
           require 'httparty'
           exit=false
           until exit do
             begin
-              msg = JSON.parse(HTTParty.get('https://api.coinmarketcap.com/v1/ticker/?limit=1500&convert=EUR').body).select {|e| arr.include?(e["id"])}.map {|el| "<pre>#{el['symbol']} - #{el["price_eur"]} - #{el["rank"]} - #{el["percent_change_1h"]}  - #{el["percent_change_24h"]}  - #{el["percent_change_7d"]}</pre>"}
+              if lamb==nil
+                selector=-> e {arr.include?(e['id'])}
+              else
+                selector=lamb
+              end
+
+              if query==nil
+                data_selector_query=preferences['queries']['get_price']
+              else
+                data_selector_query=query
+              end
+
+              msg = JSON.parse(HTTParty.get(data_selector_query).body).select (&selector).map {|el| "<pre>#{el['symbol']} - #{el["price_eur"]} - #{el["rank"]} - #{el["percent_change_1h"]}  - #{el["percent_change_24h"]}  - #{el["percent_change_7d"]}</pre>"}
               bot.api.send_message(chat_id: message.chat.id, text: "#{msg}".inspect.delete('[\"]').delete(',').delete('\\'), parse_mode: 'HTML')
               exit=true
             rescue Exception => e
@@ -93,6 +105,9 @@ listen=-> {
             price_notifier.(cmk)
           when '/candidates'
             price_notifier.(candidates)
+          when '/possible'
+            possible_lambda=-> e {e['percent_change_7d'].to_f>=150 && e['percent_change_24h'].to_f>0 && e['price_eur'].to_f<=0.01}
+            price_notifier.(candidates, possible_lambda, preferences['queries']['research'])
           when '/max'
             bot.api.send_message(chat_id: message.chat.id, text: "#{@pairs.invert.map {|k, _| [k, get_key_from_redis("#{k}-MAX")]}.inspect}")
           when '/profit_max'
