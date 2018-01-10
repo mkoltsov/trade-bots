@@ -23,7 +23,6 @@ main_loop= ->(arg) {loop do
   # thresholds=preferences['thresholds']
   offsets=preferences['offsets']
 
-  puts "#{btc_profit} #{eth_profit} #{ltc_profit}"
   # binding.pry
 
   prices=Hash[@pairs.invert.map {|k, _| [k, get_current_price(k)]}]
