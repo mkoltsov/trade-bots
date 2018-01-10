@@ -1,5 +1,9 @@
 #!/usr/bin/env ruby
 
+require 'httparty'
+
+@opp_lambda=-> e {e['percent_change_7d'].to_f>=100 && e['percent_change_24h'].to_f>0 && e['price_eur'].to_f<=0.01  && e["24h_volume_usd"].to_f>50000 && e["max_supply"]}
+
 def calculate_profit(pair)
   tries||=preferences['retries']
   get_profit(pair)
@@ -30,8 +34,13 @@ main_loop= ->(arg) {loop do
   max_prices=Hash[@pairs.invert.map {|k, _| [k, get_key_from_redis("#{k}-MAX")]}]
   min_prices=Hash[@pairs.invert.map {|k, _| [k, get_key_from_redis("#{k}-MIN")]}]
   bought_prices=Hash[@pairs.invert.map {|k, _| [k, get_key_from_redis("#{k}-BOUGHT")]}]
+  candidates=JSON[get_key_from_redis('candidates')]
+
+  new_candidates = JSON.parse(HTTParty.get(preferences['queries']['research']).body).select(&@opp_lambda).map {|el| "#{el['id']}"}.select{|elem| !candidates.index(elem)}
 
   case
+    when new_candidates.length>0
+      set_key_in_redis('candidates', candidates + new_candidates)
     when update_mins_max(btc_profit, eth_profit, ltc_profit)
         telegram_send("Profit/Loss indicator BTC #{btc_profit} ETH #{eth_profit} LTC #{ltc_profit}") if convert_to_bool(get_key_from_redis("NOTIFICATIONS"))
     # when btc_profit >= thresholds['raising']['btc'], eth_profit >= thresholds['raising']['eth'], ltc_profit  >= thresholds['raising']['ltc']
@@ -67,14 +76,13 @@ listen=-> {
   require './lib/ticker.rb'
   @delay_ticker=preferences['delays']['ticker']
   cmk=preferences['coins_interested']
-  candidates=preferences['candidates']
+  candidates=JSON[get_key_from_redis('candidates')]
   Telegram::Bot::Client.run(telegram_token) do |bot|
 
     begin
       bot.listen do |message|
 
         price_notifier = -> (arr, lamb=nil, query=preferences['queries']['get_price']) {
-          require 'httparty'
           exit=false
           until exit do
             begin
@@ -99,8 +107,7 @@ listen=-> {
             possible_lambda=-> e {e['percent_change_7d'].to_f>=150 && e['percent_change_24h'].to_f>0 && e['price_eur'].to_f<=0.01}
             price_notifier.(nil, possible_lambda, preferences['queries']['research'])
           when '/opp'
-            possible_lambda=-> e {e['percent_change_7d'].to_f>=100 && e['percent_change_24h'].to_f>0 && e['price_eur'].to_f<=0.01  && e["24h_volume_usd"].to_f>50000 && e["max_supply"]}
-            price_notifier.(nil, possible_lambda, preferences['queries']['research'])
+            price_notifier.(nil, @opp_lambda, preferences['queries']['research'])
           when '/max'
             bot.api.send_message(chat_id: message.chat.id, text: "#{@pairs.invert.map {|k, _| [k, get_key_from_redis("#{k}-MAX")]}.inspect}")
           when '/profit_max'
