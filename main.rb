@@ -30,10 +30,12 @@ main_loop= ->(arg) {loop do
   min_prices=Hash[@pairs.invert.map {|k, _| [k, get_key_from_redis("#{k}-MIN")]}]
   bought_prices=Hash[@pairs.invert.map {|k, _| [k, get_key_from_redis("#{k}-BOUGHT")]}]
   candidates=JSON[get_key_from_redis('candidates')]
-
+  puts "precalculations finished"
   new_candidates = JSON.parse(HTTParty.get(preferences['queries']['research']).body).select(&@opp_lambda).map {|el| "#{el['id']}"}.select{|elem| !candidates.index(elem)}
+  puts "new candidates #{new_candidates.inspect}"
 
   if new_candidates.length>0
+    puts "got new candidates"
     set_key_in_redis('candidates', candidates + new_candidates)
   end
 
@@ -50,8 +52,6 @@ main_loop= ->(arg) {loop do
     end
   end
   case
-    when update_mins_max(btc_profit, eth_profit, ltc_profit)
-        telegram_send("Profit/Loss indicator BTC #{btc_profit} ETH #{eth_profit} LTC #{ltc_profit}") if convert_to_bool(get_key_from_redis("NOTIFICATIONS"))
     when @closed_orders_number != last_filled.size
       order=last_filled.last
       @closed_orders_number=last_filled.size
