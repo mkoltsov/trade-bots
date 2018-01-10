@@ -23,10 +23,6 @@ main_loop= ->(arg) {loop do
   # thresholds=preferences['thresholds']
   offsets=preferences['offsets']
 
-  btc_profit = calculate_profit(@pairs[:bitcoin])
-  eth_profit=calculate_profit(@pairs[:ethereum])
-  ltc_profit=calculate_profit(@pairs[:litecoin])
-
   puts "#{btc_profit} #{eth_profit} #{ltc_profit}"
   # binding.pry
 
@@ -57,9 +53,6 @@ main_loop= ->(arg) {loop do
   case
     when update_mins_max(btc_profit, eth_profit, ltc_profit)
         telegram_send("Profit/Loss indicator BTC #{btc_profit} ETH #{eth_profit} LTC #{ltc_profit}") if convert_to_bool(get_key_from_redis("NOTIFICATIONS"))
-    # when btc_profit >= thresholds['raising']['btc'], eth_profit >= thresholds['raising']['eth'], ltc_profit  >= thresholds['raising']['ltc']
-    #   telegram_send("Profits BTC #{btc_profit} ETH #{eth_profit} LTC #{ltc_profit}")
-
     when @closed_orders_number != last_filled.size
       order=last_filled.last
       @closed_orders_number=last_filled.size
