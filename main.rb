@@ -79,8 +79,8 @@ listen=-> {
           until exit do
             begin
               default_selector=-> e {arr.include?(e['id'])}
-              # selector=lamb||default_selector
-              msg = JSON.parse(HTTParty.get(query).body).select(&(lamb||default_selector)).map {|el| "<pre>#{el['symbol']} - #{el["price_eur"]} - #{el["rank"]} - #{el["percent_change_1h"]}  - #{el["percent_change_24h"]}  - #{el["percent_change_7d"]}</pre>"}
+              selector=lamb||default_selector
+              msg = JSON.parse(HTTParty.get(query).body).select(&selector).map {|el| "<pre>#{el['symbol']} - #{el["price_eur"]} - #{el["rank"]} - #{el["percent_change_1h"]}  - #{el["percent_change_24h"]}  - #{el["percent_change_7d"]}</pre>"}
               bot.api.send_message(chat_id: message.chat.id, text: "#{msg}".inspect.delete('[\"]').delete(',').delete('\\'), parse_mode: 'HTML')
               exit=true
             rescue Exception => e
