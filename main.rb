@@ -73,7 +73,7 @@ listen=-> {
     begin
       bot.listen do |message|
 
-        price_notifier = -> (arr, lamb, query=preferences['queries']['get_price']) {
+        price_notifier = -> (arr, lamb=-> e {arr.include?(e['id'])}, query=preferences['queries']['get_price']) {
           require 'httparty'
           exit=false
           until exit do
@@ -83,9 +83,9 @@ listen=-> {
               # else
               #   selector=lamb
               # end
-              default_selector=-> e {arr.include?(e['id'])}
-              selector=lamb||default_selector
-              msg = JSON.parse(HTTParty.get(query).body).select(&selector).map {|el| "<pre>#{el['symbol']} - #{el["price_eur"]} - #{el["rank"]} - #{el["percent_change_1h"]}  - #{el["percent_change_24h"]}  - #{el["percent_change_7d"]}</pre>"}
+              # default_selector=-> e {arr.include?(e['id'])}
+              # selector=lamb||default_selector
+              msg = JSON.parse(HTTParty.get(query).body).select(&lamb).map {|el| "<pre>#{el['symbol']} - #{el["price_eur"]} - #{el["rank"]} - #{el["percent_change_1h"]}  - #{el["percent_change_24h"]}  - #{el["percent_change_7d"]}</pre>"}
               bot.api.send_message(chat_id: message.chat.id, text: "#{msg}".inspect.delete('[\"]').delete(',').delete('\\'), parse_mode: 'HTML')
               exit=true
             rescue Exception => e
