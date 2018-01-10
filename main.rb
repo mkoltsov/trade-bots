@@ -31,8 +31,8 @@ main_loop= ->(arg) {loop do
   bought_prices=Hash[@pairs.invert.map {|k, _| [k, get_key_from_redis("#{k}-BOUGHT")]}]
   candidates=JSON[get_key_from_redis('candidates')]
   puts "precalculations finished"
+  
   new_candidates = JSON.parse(HTTParty.get(preferences['queries']['research']).body).select(&@opp_lambda).map {|el| "#{el['id']}"}.select{|elem| !candidates.index(elem)}
-  puts "new candidates #{new_candidates.inspect}"
 
   if new_candidates.length>0
     puts "got new candidates"
