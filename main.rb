@@ -16,7 +16,7 @@ main_loop= ->(arg) {loop do
   @bot_type="Ticker"
   require './lib/ticker.rb'
   @delay_ticker=preferences['delays']['ticker']
-  thresholds=preferences['thresholds']
+  # thresholds=preferences['thresholds']
   offsets=preferences['offsets']
 
   btc_profit = calculate_profit(@pairs[:bitcoin])
@@ -73,24 +73,19 @@ listen=-> {
     begin
       bot.listen do |message|
 
-        price_notifier = -> (arr, lamb=nil, query=nil) {
+        price_notifier = -> (arr, lamb, query=preferences['queries']['get_price']) {
           require 'httparty'
           exit=false
           until exit do
             begin
-              if lamb==nil
-                selector=-> e {arr.include?(e['id'])}
-              else
-                selector=lamb
-              end
-
-              if query==nil
-                data_selector_query=preferences['queries']['get_price']
-              else
-                data_selector_query=query
-              end
-
-              msg = JSON.parse(HTTParty.get(data_selector_query).body).select (&selector).map {|el| "<pre>#{el['symbol']} - #{el["price_eur"]} - #{el["rank"]} - #{el["percent_change_1h"]}  - #{el["percent_change_24h"]}  - #{el["percent_change_7d"]}</pre>"}
+              # if lamb==nil
+              #   selector=-> e {arr.include?(e['id'])}
+              # else
+              #   selector=lamb
+              # end
+              default_selector=-> e {arr.include?(e['id'])}
+              selector=lamb||default_selector
+              msg = JSON.parse(HTTParty.get(query).body).select(&selector).map {|el| "<pre>#{el['symbol']} - #{el["price_eur"]} - #{el["rank"]} - #{el["percent_change_1h"]}  - #{el["percent_change_24h"]}  - #{el["percent_change_7d"]}</pre>"}
               bot.api.send_message(chat_id: message.chat.id, text: "#{msg}".inspect.delete('[\"]').delete(',').delete('\\'), parse_mode: 'HTML')
               exit=true
             rescue Exception => e
@@ -107,7 +102,10 @@ listen=-> {
             price_notifier.(candidates)
           when '/possible'
             possible_lambda=-> e {e['percent_change_7d'].to_f>=150 && e['percent_change_24h'].to_f>0 && e['price_eur'].to_f<=0.01}
-            price_notifier.(candidates, possible_lambda, preferences['queries']['research'])
+            price_notifier.(nil, possible_lambda, preferences['queries']['research'])
+          when '/opp'
+            possible_lambda=-> e {e['percent_change_7d'].to_f>=100 && e['percent_change_24h'].to_f>0 && e['price_eur'].to_f<=0.01  && e["24h_volume_usd"].to_f>50000 && e["max_supply"]}
+            price_notifier.(nil, possible_lambda, preferences['queries']['research'])
           when '/max'
             bot.api.send_message(chat_id: message.chat.id, text: "#{@pairs.invert.map {|k, _| [k, get_key_from_redis("#{k}-MAX")]}.inspect}")
           when '/profit_max'
