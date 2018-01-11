@@ -14,6 +14,11 @@ rescue Exception => e
     puts "The number of retries has been exceeded, #{e}"
   end
 end
+
+def format_array_for_html(arr)
+    arr.inspect.delete('[\"]').delete(',').delete('\\')
+end
+
 #TODO save the bought price and sell as soon as it is reached to stop the losses
 main_loop= ->(arg) {loop do
   begin
@@ -84,7 +89,7 @@ listen=-> {
               default_selector=-> e {arr.include?(e['id'])}
               selector=lamb||default_selector
               msg = JSON.parse(HTTParty.get(query).body).select(&selector).map {|el| "<pre>#{el['symbol']} - #{el["price_eur"]} - #{el["rank"]} - #{el["percent_change_1h"]}  - #{el["percent_change_24h"]}  - #{el["percent_change_7d"]}</pre>"}
-              bot.api.send_message(chat_id: message.chat.id, text: "#{msg}".inspect.delete('[\"]').delete(',').delete('\\'), parse_mode: 'HTML')
+              bot.api.send_message(chat_id: message.chat.id, text: format_array_for_html("#{msg}"), parse_mode: 'HTML')
               exit=true
             rescue Exception => e
               bot.api.send_message(chat_id: message.chat.id, text: "got #{e}, will retry")
@@ -93,17 +98,26 @@ listen=-> {
           end
         }
 
+        def market_analysis(message)
+          market_data=HTTParty.get(preferences['queries']['market']).body
+          market_data_parsed=JSON.parse(market_data)
+          text = "Market cap MARKER, cap #{market_data_parsed['total_market_cap_usd']}, vol24 #{market_data_parsed['total_24h_volume_usd']} "
+          if (JSON[get_key_from_redis('market')]['total_market_cap_usd'] || 0).to_f > market_data_parsed['total_market_cap_usd'].to_f
+            bot.api.send_message(chat_id: message.chat.id, text: text.gsub('MARKER', 'shrinks'))
+          else
+            bot.api.send_message(chat_id: message.chat.id, text: text.gsub('MARKER', 'increases'))
+          end
+          set_key_in_redis('market', market_data)
+        end
+
         case message.text
           when '/market'
-            market_data=HTTParty.get(preferences['queries']['market']).body
-            market_data_parsed=JSON.parse(market_data)
-            text = "Market cap MARKER, cap #{market_data_parsed[ 'total_market_cap_usd']}, vol24 #{market_data_parsed[ 'total_24h_volume_usd']} "
-            if (JSON[get_key_from_redis('market')]['total_market_cap_usd'] || 0).to_f > market_data_parsed['total_market_cap_usd'].to_f
-              bot.api.send_message(chat_id: message.chat.id, text: text.gsub('MARKER', 'shrinks'))
-            else
-              bot.api.send_message(chat_id: message.chat.id, text: text.gsub('MARKER', 'increases'))
-            end
-            set_key_in_redis('market', market_data)
+            market_analysis(message)
+          when '/portfolio'
+            bought_number=Hash[cmk.map {|e| [e, (get_key_from_redis("#{e}-NUMBER") || 0).to_f]}]
+            selector=-> e {cmk.include?(e['id'])}
+            coins_with_prices=JSON.parse(HTTParty.get(preferences['queries']['get_price']).body).select(&selector).map {|e| "<pre>#{e['id']} - #{e['price_eur'].to_f * bought_number[e['id']]}</pre>"}
+            bot.api.send_message(chat_id: message.chat.id, text: "Portfolio #{format_array_for_html(coins_with_prices)}")
           when '/price'
             price_notifier.(cmk)
           when '/candidates'
