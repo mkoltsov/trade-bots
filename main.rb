@@ -117,7 +117,7 @@ listen=-> {
             bought_number=Hash[cmk.map {|e| [e, (get_key_from_redis("#{e}-NUMBER") || 0).to_f]}]
             selector=-> e {cmk.include?(e['id'])}
             coins_with_prices=JSON.parse(HTTParty.get(preferences['queries']['get_price']).body).select(&selector).map {|e| "<pre>#{e['id']} - #{e['price_eur'].to_f * bought_number[e['id']]}</pre>"}
-            bot.api.send_message(chat_id: message.chat.id, text: "Portfolio #{format_array_for_html(coins_with_prices)}")
+            bot.api.send_message(chat_id: message.chat.id, text: "Portfolio #{format_array_for_html(coins_with_prices)}" , parse_mode: 'HTML')
           when '/price'
             price_notifier.(cmk)
           when '/candidates'
