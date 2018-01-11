@@ -2,7 +2,7 @@
 
 require 'httparty'
 
-@opp_lambda=-> e {e['percent_change_7d'].to_f>=100 && e['percent_change_24h'].to_f>0 && e['price_eur'].to_f<=0.01  && e["24h_volume_usd"].to_f>50000 && e["max_supply"]}
+@opp_lambda=-> e {e['percent_change_7d'].to_f>=100 && e['percent_change_24h'].to_f>0 && e['price_eur'].to_f<=0.1  && e["24h_volume_usd"].to_f>50000}
 
 def calculate_profit(pair)
   tries||=preferences['retries']
@@ -31,7 +31,7 @@ main_loop= ->(arg) {loop do
   bought_prices=Hash[@pairs.invert.map {|k, _| [k, get_key_from_redis("#{k}-BOUGHT")]}]
   candidates=JSON[get_key_from_redis('candidates')]
   puts "precalculations finished"
-  
+
   new_candidates = JSON.parse(HTTParty.get(preferences['queries']['research']).body).select(&@opp_lambda).map {|el| "#{el['id']}"}.select{|elem| !candidates.index(elem)}
 
   if new_candidates.length>0
