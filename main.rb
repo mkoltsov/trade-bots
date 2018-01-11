@@ -72,7 +72,6 @@ listen=-> {
   require './lib/ticker.rb'
   @delay_ticker=preferences['delays']['ticker']
   cmk=preferences['coins_interested']
-  candidates=JSON[get_key_from_redis('candidates')]
   Telegram::Bot::Client.run(telegram_token) do |bot|
 
     begin
@@ -82,6 +81,7 @@ listen=-> {
           exit=false
           until exit do
             begin
+              candidates=JSON[get_key_from_redis('candidates')]
               default_selector=-> e {arr.include?(e['id'])}
               selector=lamb||default_selector
               msg = JSON.parse(HTTParty.get(query).body).select(&selector).map {|el| "<pre>#{el['symbol']} - #{el["price_eur"]} - #{el["rank"]} - #{el["percent_change_1h"]}  - #{el["percent_change_24h"]}  - #{el["percent_change_7d"]}</pre>"}
