@@ -94,6 +94,16 @@ listen=-> {
         }
 
         case message.text
+          when '/market'
+            market_data=HTTParty.get(preferences['queries']['market']).body
+            market_data_parsed=JSON.parse(market_data)
+            text = "Market cap MARKER, cap #{market_data_parsed[ 'total_market_cap_usd']}, vol24 #{market_data_parsed[ 'total_24h_volume_usd']} "
+            if (JSON[get_key_from_redis('market')]['total_market_cap_usd'] || 0).to_f < market_data_parsed['total_market_cap_usd'].to_f
+              bot.api.send_message(chat_id: message.chat.id, text: text.gsub('MARKER', 'shrinks'))
+            else
+              bot.api.send_message(chat_id: message.chat.id, text: text.gsub('MARKER', 'increases'))
+            end
+            set_key_in_redis('market', market_data)
           when '/price'
             price_notifier.(cmk)
           when '/candidates'
