@@ -98,7 +98,7 @@ listen=-> {
           end
         }
 
-        def market_analysis(message)
+         market_analysis=-> () {
           market_data=HTTParty.get(preferences['queries']['market']).body
           market_data_parsed=JSON.parse(market_data)
           text = "Market cap MARKER, cap #{market_data_parsed['total_market_cap_usd']}, vol24 #{market_data_parsed['total_24h_volume_usd']} "
@@ -108,11 +108,11 @@ listen=-> {
             bot.api.send_message(chat_id: message.chat.id, text: text.gsub('MARKER', 'increases'))
           end
           set_key_in_redis('market', market_data)
-        end
+         }
 
         case message.text
           when '/market'
-            market_analysis(message)
+            market_analysis.()
           when '/portfolio'
             bought_number=Hash[cmk.map {|e| [e, (get_key_from_redis("#{e}-NUMBER") || 0).to_f]}]
             selector=-> e {cmk.include?(e['id'])}
