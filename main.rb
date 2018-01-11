@@ -81,7 +81,6 @@ listen=-> {
           exit=false
           until exit do
             begin
-              candidates=JSON[get_key_from_redis('candidates')]
               default_selector=-> e {arr.include?(e['id'])}
               selector=lamb||default_selector
               msg = JSON.parse(HTTParty.get(query).body).select(&selector).map {|el| "<pre>#{el['symbol']} - #{el["price_eur"]} - #{el["rank"]} - #{el["percent_change_1h"]}  - #{el["percent_change_24h"]}  - #{el["percent_change_7d"]}</pre>"}
@@ -98,6 +97,7 @@ listen=-> {
           when '/price'
             price_notifier.(cmk)
           when '/candidates'
+            candidates=JSON[get_key_from_redis('candidates')]
             price_notifier.(candidates)
           when '/possible'
             possible_lambda=-> e {e['percent_change_7d'].to_f>=150 && e['percent_change_24h'].to_f>0 && e['price_eur'].to_f<=0.01}
