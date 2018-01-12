@@ -133,7 +133,7 @@ listen=-> {
             price_notifier.(JSON[get_key_from_redis('interested')])
           #TODO all who are not in bought, interested and ignored
           when '/candidates'
-            price_notifier.(JSON[get_key_from_redis('candidates')])
+            price_notifier.(JSON[get_key_from_redis('candidates')] - (cmk + JSON[get_key_from_redis('interested')] + JSON[get_key_from_redis('ignored')]))
           when '/possible'
             possible_lambda=-> e {e['percent_change_7d'].to_f>=150 && e['percent_change_24h'].to_f>0 && e['price_eur'].to_f<=0.01}
             price_notifier.(nil, possible_lambda, preferences['queries']['research'])
@@ -172,6 +172,7 @@ listen=-> {
               payload=extract_payload(message)
               update_key('ignored', payload)
             elsif message.text && message.text.match?("interest")
+              binding.pry
               payload=extract_payload(message)
               update_key('interested', payload)
             else
