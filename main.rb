@@ -25,7 +25,6 @@ main_loop= ->(arg) {loop do
   @bot_type="Ticker"
   require './lib/ticker.rb'
   @delay_ticker=preferences['delays']['ticker']
-  # thresholds=preferences['thresholds']
   offsets=preferences['offsets']
 
   # binding.pry
