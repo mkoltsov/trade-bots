@@ -118,10 +118,13 @@ listen=-> {
          }
 
         case message.text
-          when /interest/i
+          when /intrst/i
             binding.pry
             payload=extract_payload(message.text)
             update_key('interested', payload)
+          when /ignr/i
+            payload=extract_payload(message.text)
+            update_key('ignored', payload)
           when '/market'
             market_analysis.()
           when '/portfolio'
@@ -172,9 +175,6 @@ listen=-> {
               puts message.text
               normalized=-> {"#{message.text.split(' ')[1].upcase}-EUR"}
               bot.api.send_message(chat_id: message.chat.id, text: "Max: #{get_price_limit(normalized.(), :max)} Min: #{get_price_limit(normalized.(), :min)}")
-            elsif message.text && message.text.match?("ignore")
-              payload=extract_payload(message)
-              update_key('ignored', payload)
             else
               bot.api.send_message(chat_id: message.chat.id, text: "Your command #{message} has not been recognized")
             end
