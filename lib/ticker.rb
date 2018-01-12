@@ -22,14 +22,6 @@ end
 
 telegram_send("#{@bot_type} bot has been launched by #{`whoami`.chomp} on #{(`hostname`.chomp)} at #{Time.now.strftime('%H:%M')}")
 
-# def get_bought(pair)
-#   last_filled.select {|i| i['product_id']==pair}.last
-# end
-
-# def update_price(data)
-#   data.merge({'price' => get_current_price(data['product_id'])})
-# end
-
 def get_current_price(pair)
   case
     when @pairs.any? {|k, v| v==pair}
