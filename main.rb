@@ -118,6 +118,10 @@ listen=-> {
          }
 
         case message.text
+          when /interest/i
+            binding.pry
+            payload=extract_payload(message.text)
+            update_key('interested', payload)
           when '/market'
             market_analysis.()
           when '/portfolio'
@@ -171,10 +175,6 @@ listen=-> {
             elsif message.text && message.text.match?("ignore")
               payload=extract_payload(message)
               update_key('ignored', payload)
-            elsif message.text && message.text.match?("interest")
-              binding.pry
-              payload=extract_payload(message)
-              update_key('interested', payload)
             else
               bot.api.send_message(chat_id: message.chat.id, text: "Your command #{message} has not been recognized")
             end
