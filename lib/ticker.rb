@@ -20,7 +20,7 @@ end
 
 @closed_orders_number=last_filled.size
 
-# telegram_send("#{@bot_type} bot has been launched by #{`whoami`.chomp} on #{(`hostname`.chomp)} at #{Time.now.strftime('%H:%M')}")
+telegram_send("#{@bot_type} bot has been launched by #{`whoami`.chomp} on #{(`hostname`.chomp)} at #{Time.now.strftime('%H:%M')}")
 
 def get_current_price(pair)
   case
