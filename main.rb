@@ -131,15 +131,16 @@ listen=-> {
           when '/portfolio'
             bought_number=Hash[cmk.map {|e| [e, (get_key_from_redis("#{e}-NUMBER") || 0).to_f]}]
             selector=-> e {cmk.include?(e['id'])}
-            coins_with_prices=JSON.parse(HTTParty.get(preferences['queries']['get_price']).body).select(&selector).map {|e| "<pre>#{e['id']} - #{e['price_eur'].to_f * bought_number[e['id']]}</pre>"}
-            bot.api.send_message(chat_id: message.chat.id, text: "Portfolio #{format_array_for_html(coins_with_prices)}" , parse_mode: 'HTML')
+            coins_with_prices=JSON.parse(HTTParty.get(preferences['queries']['get_price']).body).select(&selector)
+            totals=coins_with_prices.inject(0) {|acc, i| acc + e['price_eur'].to_f * bought_number[e['id']]}
+            formatted_prices=coins_with_prices.map {|e| "<pre>#{e['id']} - #{e['price_eur'].to_f * bought_number[e['id']]}</pre>"}
+            bot.api.send_message(chat_id: message.chat.id, text: "Totals: <pre>#{totals}</pre> #{format_array_for_html(formatted_prices)}" , parse_mode: 'HTML')
           # price of all who're bought
           when '/price'
             price_notifier.(cmk)
           #price of all I'm interested
           when '/interested'
             price_notifier.(JSON[get_key_from_redis('interested')])
-          #TODO all who are not in bought, interested and ignored
           when '/candidates'
             price_notifier.(JSON[get_key_from_redis('candidates')] - (cmk + JSON[get_key_from_redis('interested')] + JSON[get_key_from_redis('ignored')]))
           when '/possible'
