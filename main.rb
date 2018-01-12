@@ -138,6 +138,8 @@ listen=-> {
           #price of all I'm interested
           when '/interested'
             price_notifier.(JSON[get_key_from_redis('interested')])
+          when '/interest'
+            puts "yo"
           #TODO all who are not in bought, interested and ignored
           when '/candidates'
             price_notifier.(JSON[get_key_from_redis('candidates')] - (cmk + JSON[get_key_from_redis('interested')] + JSON[get_key_from_redis('ignored')]))
