@@ -119,7 +119,6 @@ listen=-> {
 
         case message.text
           when /intrst/i
-            # binding.pry
             payload=extract_payload(message)
             update_key('interested', payload)
           when /ignr/i
