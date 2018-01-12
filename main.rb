@@ -72,11 +72,19 @@ main_loop= ->(arg) {loop do
   sleep(@delay_ticker)
 end}
 
+def extract_payload(message)
+  message.text.split(' ').shift
+end
+
+def update_key(key, payload)
+  set_key_in_redis(key, JSON[get_key_from_redis(key)] + payload)
+end
+
 listen=-> {
   @bot_type="Listen"
   require './lib/ticker.rb'
   @delay_ticker=preferences['delays']['ticker']
-  cmk=preferences['coins_interested']
+  cmk=preferences['coins_bought']
   Telegram::Bot::Client.run(telegram_token) do |bot|
 
     begin
@@ -118,11 +126,15 @@ listen=-> {
             selector=-> e {cmk.include?(e['id'])}
             coins_with_prices=JSON.parse(HTTParty.get(preferences['queries']['get_price']).body).select(&selector).map {|e| "<pre>#{e['id']} - #{e['price_eur'].to_f * bought_number[e['id']]}</pre>"}
             bot.api.send_message(chat_id: message.chat.id, text: "Portfolio #{format_array_for_html(coins_with_prices)}" , parse_mode: 'HTML')
+          # price of all who're bought
           when '/price'
             price_notifier.(cmk)
+          #price of all I'm interested
+          when '/interested'
+            price_notifier.(JSON[get_key_from_redis('interested')])
+          #TODO all who are not in bought, interested and ignored
           when '/candidates'
-            candidates=JSON[get_key_from_redis('candidates')]
-            price_notifier.(candidates)
+            price_notifier.(JSON[get_key_from_redis('candidates')])
           when '/possible'
             possible_lambda=-> e {e['percent_change_7d'].to_f>=150 && e['percent_change_24h'].to_f>0 && e['price_eur'].to_f<=0.01}
             price_notifier.(nil, possible_lambda, preferences['queries']['research'])
@@ -157,6 +169,12 @@ listen=-> {
               puts message.text
               normalized=-> {"#{message.text.split(' ')[1].upcase}-EUR"}
               bot.api.send_message(chat_id: message.chat.id, text: "Max: #{get_price_limit(normalized.(), :max)} Min: #{get_price_limit(normalized.(), :min)}")
+            elsif message.text && message.text.match?("ignore")
+              payload=extract_payload(message)
+              update_key('ignored', payload)
+            elsif message.text && message.text.match?("interest")
+              payload=extract_payload(message)
+              update_key('interested', payload)
             else
               bot.api.send_message(chat_id: message.chat.id, text: "Your command #{message} has not been recognized")
             end

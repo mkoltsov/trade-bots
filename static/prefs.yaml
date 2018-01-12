@@ -17,7 +17,7 @@ offsets:
 delays:
   ticker: 60
 retries: 999
-coins_interested:
+coins_bought:
   - basic-attention-token
   - poet
   - ethlend
