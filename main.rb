@@ -72,11 +72,13 @@ main_loop= ->(arg) {loop do
 end}
 
 def extract_payload(message)
-  message.text.split(' ').shift
+  arr=message.text.split(' ')
+  arr.shift
+  arr
 end
 
 def update_key(key, payload)
-  set_key_in_redis(key, JSON[get_key_from_redis(key)] + payload)
+  set_key_in_redis(key, (JSON[get_key_from_redis(key)] || []) + payload)
 end
 
 listen=-> {
